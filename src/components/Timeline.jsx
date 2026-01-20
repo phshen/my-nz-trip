@@ -6,7 +6,7 @@ const Timeline = ({ data, onUpdate, onDelete }) => {
     return (
         <div className="timeline-container">
             {data.map((day, index) => (
-                <div key={index} className="timeline-item">
+                <div key={day.id} className="timeline-item">
                     <div className="timeline-marker"></div>
                     <div className="timeline-content">
                         <DayCard

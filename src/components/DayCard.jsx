@@ -4,6 +4,11 @@ const DayCard = ({ data, onSave, onDelete }) => {
     const [isEditing, setIsEditing] = useState(data.isEditing || false);
     const [editData, setEditData] = useState(data);
 
+    // Sync state if data prop changes
+    React.useEffect(() => {
+        setEditData(data);
+    }, [data]);
+
     const handleSave = () => {
         onSave({ ...editData, isEditing: false });
         setIsEditing(false);

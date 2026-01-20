@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import Timeline from './components/Timeline';
 import AddDayButton from './components/AddDayButton';
+import ConfirmModal from './components/ConfirmModal';
 import { itinerary as initialData } from './data/itinerary';
 
 function App() {
   // Initialize state from localStorage or default data
   const [itinerary, setItinerary] = useState(() => {
-    const saved = localStorage.getItem('trip-itinerary');
-    return saved ? JSON.parse(saved) : initialData;
+    const saved = localStorage.getItem('trip-itinerary-v2');
+    let data = saved ? JSON.parse(saved) : initialData;
+
+    // Ensure all items have a unique ID
+    return data.map(item => ({
+      ...item,
+      id: item.id || crypto.randomUUID()
+    }));
+  });
+
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    dayIndex: null
   });
 
   // Save to localStorage whenever itinerary changes
   useEffect(() => {
-    localStorage.setItem('trip-itinerary', JSON.stringify(itinerary));
+    localStorage.setItem('trip-itinerary-v2', JSON.stringify(itinerary));
   }, [itinerary]);
 
   const handleAddDay = () => {
@@ -21,6 +33,7 @@ function App() {
     const nextDayNum = itinerary.length + 1;
 
     const newDay = {
+      id: crypto.randomUUID(),
       date: "New Date",
       day: `D${nextDayNum}`,
       route: "New Route",
@@ -40,11 +53,20 @@ function App() {
     setItinerary(newItinerary);
   };
 
-  const handleDeleteDay = (index) => {
-    if (window.confirm("Are you sure you want to delete this day?")) {
-      const newItinerary = itinerary.filter((_, i) => i !== index);
+  const handleDeleteClick = (index) => {
+    setDeleteModal({ isOpen: true, dayIndex: index });
+  };
+
+  const confirmDelete = () => {
+    if (deleteModal.dayIndex !== null) {
+      const newItinerary = itinerary.filter((_, i) => i !== deleteModal.dayIndex);
       setItinerary(newItinerary);
+      setDeleteModal({ isOpen: false, dayIndex: null });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, dayIndex: null });
   };
 
   return (
@@ -57,11 +79,17 @@ function App() {
         <Timeline
           data={itinerary}
           onUpdate={handleUpdateDay}
-          onDelete={handleDeleteDay}
+          onDelete={handleDeleteClick}
         />
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
           <AddDayButton onAdd={handleAddDay} />
         </div>
+        <ConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={cancelDelete}
+          onConfirm={confirmDelete}
+          message="Are you sure you want to delete this day? This action cannot be undone."
+        />
       </main>
       <footer>
         <p>Created for your amazing journey</p>
